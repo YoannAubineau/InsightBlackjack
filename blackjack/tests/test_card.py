@@ -104,3 +104,35 @@ class TestShufflingShoe(unittest.TestCase):
     def test_repr(self):
         self.assertIn(str(len(self.shoe)), repr(self.shoe))
 
+
+class TestHand(unittest.TestCase):
+
+    def setUp(self):
+        self.deck = blackjack.card.Deck()
+        self.hand = blackjack.card.Hand()
+
+    def test_add_card(self):
+        size_before = len(self.hand)
+        card = self.deck[0]
+        self.hand.add_card(card)
+        self.assertEqual(len(self.hand), size_before + 1)
+        self.assertIn(card, self.hand)
+
+    def test_reveal_all_cards(self):
+        cards = []
+        for _ in range(3):
+            card = self.deck[0]
+            card.visible = False
+            self.hand.add_card(card)
+            cards.append(card)
+        self.hand.reveal_all_cards()
+        for card in cards:
+            self.assertTrue(card.visible)
+
+    def test_score(self):
+        self.hand.add_card(self.deck[0])
+        self.assertTrue(self.hand.score)
+
+    def test_repr(self):
+        self.assertIn(str(len(self.hand)), repr(self.hand))
+

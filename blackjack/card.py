@@ -1,4 +1,4 @@
-"""Card, Desk and Shoe object definitions."""
+"""Card, Desk, Shoe and Hand object definitions."""
 
 import collections
 import itertools
@@ -92,5 +92,26 @@ class ShufflingShoe(Shoe):
 
     def __repr__(self):
         txt = '<Shuffling Shoe with {} remaining cards>'.format(len(self))
+        return txt
+
+
+class Hand(list):
+    """A hand of playing cards."""
+
+    def __init__(self, cards=None):
+        super(Hand, self).__init__(cards or [])
+        self.wager = None
+
+    def add_card(self, card):
+        """Add given card to hand."""
+        self.append(card)
+
+    def reveal_all_cards(self):
+        """Make all cards visible."""
+        for card in self:
+            card.visible = True
+
+    def __repr__(self):
+        txt = '<Hand with {} cards>'.format(len(self))
         return txt
 
