@@ -4,6 +4,8 @@ import collections
 import itertools
 import random
 
+import blackjack.score
+
 
 class Card(object):
     """A playing card."""
@@ -16,6 +18,11 @@ class Card(object):
 
     def __str__(self):
         return self.name if self.visible else '<hidden>'
+
+    @property
+    def values(self):
+        values = blackjack.score.values_from_card(self)
+        return values
 
     def __repr__(self):
         txt = '<Card "{}" face {}>'.format(
