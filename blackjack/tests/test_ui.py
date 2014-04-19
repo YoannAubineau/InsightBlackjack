@@ -66,3 +66,43 @@ class TestDisplayDealer(unittest.TestCase):
         self.dealer.hand.add_card(self.deck[0])
         blackjack.ui.display_dealer(self.dealer)
 
+
+class TestAsk(unittest.TestCase):
+
+    def setUp(self):
+        unittest.mock.patch('sys.stdout').start()
+
+    def tearDown(self):
+        unittest.mock.patch.stopall()
+
+    @unittest.mock.patch('builtins.input')
+    def test_type_argument(self, input):
+        input.side_effect = ['a', 'b', '3', '4']
+        key = blackjack.ui.ask('', type=int)
+        self.assertEqual(key, 3)
+        self.assertEqual(input.call_count, 3)
+
+    @unittest.mock.patch('builtins.input')
+    def test_choices_argument(self, input):
+        input.side_effect = ['a', 'b', 'c', 'd']
+        key = blackjack.ui.ask('', choices=['c'])
+        self.assertEqual(key, 'c')
+        self.assertEqual(input.call_count, 3)
+
+    @unittest.mock.patch('builtins.input')
+    def test_default_argument(self, input):
+        input.side_effect = ['', 'b']
+        key = blackjack.ui.ask('', default='c')
+        self.assertEqual(key, 'c')
+        self.assertEqual(input.call_count, 1)
+
+    @unittest.mock.patch('builtins.input')
+    def test_inconsistent_default_and_type_arguments(self, input):
+        with self.assertRaises(ValueError):
+            blackjack.ui.ask('', type=int, default='c')
+
+    @unittest.mock.patch('builtins.input')
+    def test_inconsistent_default_and_choices_arguments(self, input):
+        with self.assertRaises(ValueError):
+            blackjack.ui.ask('', choices=['a', 'b'], default='c')
+
