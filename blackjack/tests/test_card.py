@@ -33,3 +33,20 @@ class TestCard(unittest.TestCase):
         self.card.visible = False
         self.assertIn('face down', repr(self.card))
 
+
+class TestDeck(unittest.TestCase):
+
+    def setUp(self):
+        self.deck = blackjack.card.Deck()
+
+    def test_size(self):
+        self.assertEqual(len(self.deck), 52)
+        self.deck.pop()
+        self.assertEqual(len(self.deck), 51)
+
+    def test_unicity(self):
+        self.assertEqual(len(set(self.deck)), len(self.deck))
+
+    def test_repr(self):
+        self.assertIn(str(len(self.deck)), repr(self.deck))
+
