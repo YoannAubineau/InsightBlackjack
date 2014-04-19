@@ -80,3 +80,17 @@ class Shoe(collections.Iterator):
         txt = '<Shoe with {} remaining cards>'.format(len(self))
         return txt
 
+
+class ShufflingShoe(Shoe):
+    """An auto-shuffling shoe."""
+
+    def __next__(self):
+        """Return next card in shoe after shuffling."""
+        self.shuffle()
+        card = super(ShufflingShoe, self).__next__()
+        return card
+
+    def __repr__(self):
+        txt = '<Shuffling Shoe with {} remaining cards>'.format(len(self))
+        return txt
+

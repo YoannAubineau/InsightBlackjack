@@ -1,5 +1,6 @@
 """Unit-tests for blackjack/card.py module."""
 
+import copy
 import itertools
 import unittest
 
@@ -85,6 +86,20 @@ class TestShoe(unittest.TestCase):
         remaining_cards = set(self.shoe)
         intersection = set.intersection(dealt_card, remaining_cards)
         self.assertEqual(len(intersection), 0)
+
+    def test_repr(self):
+        self.assertIn(str(len(self.shoe)), repr(self.shoe))
+
+
+class TestShufflingShoe(unittest.TestCase):
+
+    def setUp(self):
+        self.deck = blackjack.card.Deck()
+        self.shoe = blackjack.card.ShufflingShoe(self.deck)
+
+    def test_autoshuffling(self):
+        clone_shoe = copy.deepcopy(self.shoe)
+        self.assertNotEqual(next(self.shoe), next(clone_shoe))
 
     def test_repr(self):
         self.assertIn(str(len(self.shoe)), repr(self.shoe))
