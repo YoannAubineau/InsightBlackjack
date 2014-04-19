@@ -1,5 +1,6 @@
 """Unit-tests for blackjack/card.py module."""
 
+import itertools
 import unittest
 
 import blackjack.card
@@ -49,4 +50,42 @@ class TestDeck(unittest.TestCase):
 
     def test_repr(self):
         self.assertIn(str(len(self.deck)), repr(self.deck))
+
+
+class TestShoe(unittest.TestCase):
+
+    def setUp(self):
+        self.deck = blackjack.card.Deck()
+        self.shoe = blackjack.card.Shoe(self.deck)
+
+    def test_size(self):
+        self.assertEqual(len(self.shoe), len(self.deck))
+
+    def test_drawn_card_is_hidden(self):
+        card = self.shoe.draw_card(visible=False)
+        self.assertFalse(card.visible)
+
+    def test_drawn_card_is_visible(self):
+        card = self.shoe.draw_card(visible=True)
+        self.assertTrue(card.visible)
+
+    def test_size_update(self):
+        size_before = len(self.shoe)
+        card = self.shoe.draw_card()
+        self.assertEqual(len(self.shoe), size_before - 1)
+
+    def test_constant_size_after_shuffling(self):
+        size_before = len(self.shoe)
+        self.shoe.shuffle()
+        self.assertEqual(len(self.shoe), size_before)
+
+    def test_suffling_not_bringing_back_dealt_cards(self):
+        dealt_card = set(itertools.islice(self.shoe, len(self.shoe) - 3))
+        self.shoe.shuffle()
+        remaining_cards = set(self.shoe)
+        intersection = set.intersection(dealt_card, remaining_cards)
+        self.assertEqual(len(intersection), 0)
+
+    def test_repr(self):
+        self.assertIn(str(len(self.shoe)), repr(self.shoe))
 
