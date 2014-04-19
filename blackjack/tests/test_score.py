@@ -38,3 +38,39 @@ class TestValuesFromCard(unittest.TestCase):
         with self.assertRaises(Exception):
             values = blackjack.score.values_from_card(card)
 
+
+class TestScoreFromHand(unittest.TestCase):
+
+    def setUp(self):
+        self.deck = blackjack.card.Deck()
+
+    def test_numbered_cars(self):
+        hand = blackjack.card.Hand(self.deck[1:4])  # cards 2, 3, 4
+        score = blackjack.score.score_from_hand(hand)
+        self.assertEqual(score, 9)
+
+    def test_soft_Ace(self):
+        hand = blackjack.card.Hand(self.deck[:3])  # cards Ace, 2, 3
+        score = blackjack.score.score_from_hand(hand)
+        self.assertEqual(score, 16)
+
+    def test_hard_Ace(self):
+        hand = blackjack.card.Hand(self.deck[:5])  # cards Ace, 2, 3, 4, 5
+        score = blackjack.score.score_from_hand(hand)
+        self.assertEqual(score, 15)
+
+
+class TestSafeOperations(unittest.TestCase):
+
+    def test_safe_min(self):
+        self.assertEqual(blackjack.score.safe_min([2, 4, 1, 3]), 1)
+
+    def test_safe_min_on_empty_sequence(self):
+        self.assertEqual(blackjack.score.safe_min([]), None)
+
+    def test_safe_max(self):
+        self.assertEqual(blackjack.score.safe_max([2, 4, 1, 3]), 4)
+
+    def test_safe_max_on_empty_sequence(self):
+        self.assertEqual(blackjack.score.safe_max([]), None)
+

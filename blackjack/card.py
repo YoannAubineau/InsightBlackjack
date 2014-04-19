@@ -118,6 +118,11 @@ class Hand(list):
         for card in self:
             card.visible = True
 
+    @property
+    def score(self):
+        score = blackjack.score.score_from_hand(self)
+        return score
+
     def __repr__(self):
         txt = '<Hand with {} cards>'.format(len(self))
         return txt
