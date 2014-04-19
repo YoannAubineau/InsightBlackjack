@@ -1,4 +1,4 @@
-"""Player and Dealer object definitions."""
+"""Player, Dealer and Table object definitions."""
 
 import blackjack.card
 
@@ -57,4 +57,18 @@ class Dealer(object):
     def __repr__(self):
         txt = '<Dealer with {} cards>'.format(len(self.hand or []))
         return txt
+
+
+class Table(object):
+    """A card table with a shoe, a dealer and some players."""
+
+    def __init__(self, shoe, dealer, players):
+        self.shoe = shoe
+        self.dealer = dealer
+        self.players = players
+        self.active_players = []
+
+    def play(self, game):
+        """Run given game on this table."""
+        game.run(self)
 

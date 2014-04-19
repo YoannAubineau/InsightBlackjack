@@ -77,3 +77,18 @@ class TestDealer(unittest.TestCase):
         self.dealer.hand.add_card(self.deck[0])
         self.assertIn('1', repr(self.dealer))
 
+
+class TestTable(unittest.TestCase):
+
+    def setUp(self):
+        deck = blackjack.card.Deck()
+        shoe = blackjack.card.Shoe(deck)
+        dealer = blackjack.player.Dealer()
+        players = [blackjack.player.Player('John', 5)]
+        self.table = blackjack.player.Table(shoe, dealer, players)
+
+    def test_play(self):
+        game = unittest.mock.Mock()
+        self.table.play(game)
+        game.run.assert_called_with(self.table)
+
