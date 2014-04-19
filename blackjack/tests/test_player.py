@@ -50,3 +50,30 @@ class TestPlayer(unittest.TestCase):
         self.assertIn('1', txt)
         self.assertIn(str(self.player.chip_count), txt)
 
+
+class TestDealer(unittest.TestCase):
+
+    def setUp(self):
+        self.deck = blackjack.card.Deck()
+        self.dealer = blackjack.player.Dealer('Artur')
+
+    def test_str(self):
+        self.assertIn(self.dealer.name, str(self.dealer))
+
+    def test_str_without_name(self):
+        dealer = blackjack.player.Dealer()
+        self.assertEqual(str(dealer), '')
+
+    def test_drop_hand(self):
+        self.dealer.hand = blackjack.card.Hand()
+        self.dealer.drop_hand()
+        self.assertEqual(self.dealer.hand, None)
+
+    def test_repr_with_no_card(self):
+        self.assertIn('0', repr(self.dealer))
+
+    def test_repr_with_cards(self):
+        self.dealer.hand = blackjack.card.Hand()
+        self.dealer.hand.add_card(self.deck[0])
+        self.assertIn('1', repr(self.dealer))
+

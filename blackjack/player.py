@@ -1,4 +1,4 @@
-"""Player object definitions."""
+"""Player and Dealer object definitions."""
 
 import blackjack.card
 
@@ -37,5 +37,24 @@ class Player(object):
     def __repr__(self):
         txt = '<Player "{}" with {} cards and {} chips>'.format(
             self.name, len(self.hand or []), self.chip_count)
+        return txt
+
+
+class Dealer(object):
+    """A dealer with one hand of playing cards."""
+
+    def __init__(self, name=None):
+        self.name = name
+        self.hand = None
+
+    def __str__(self):
+        return self.name or ''
+
+    def drop_hand(self):
+        """Empty hand completely."""
+        self.hand = None
+
+    def __repr__(self):
+        txt = '<Dealer with {} cards>'.format(len(self.hand or []))
         return txt
 
