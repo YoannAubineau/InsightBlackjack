@@ -52,6 +52,58 @@ def score_from_hand(hand):
     return best_score
 
 
+BUST, LOOSE, PUSH, WIN, BLACKJACK = 0, 1, 2, 3, 4
+
+
+def compare_hands(hand1, hand2):
+    """Return outcome comparing two given hands.
+
+    The outcome of comparing two hands is as follow:
+      * a hand over 21 loose in any case, otherwise
+      * the hand with greater score wins, or
+      * if both hands score equally it is a "push" (ie. tied game)
+
+    Also, a hand which score 21 points with only 2 cards is call a "blackjack"
+    and wins over any other hand.
+    """
+    outcome1 = outcome2 = WIN
+
+    # Examine hand1 independently
+    score1 = score_from_hand(hand1)
+    if score1 > TARGET_SCORE:
+        outcome1 = BUST
+    if score1 == TARGET_SCORE and len(hand1) == 2:
+        outcome1 = BLACKJACK
+
+    # Examine hand2 independently
+    score2 = score_from_hand(hand2)
+    if score2 > TARGET_SCORE:
+        outcome2 = BUST
+    if score2 == TARGET_SCORE and len(hand2) == 2:
+        outcome2 = BLACKJACK
+
+    # Resolve two BLACKJACKs
+    if outcome1 == outcome2 == BLACKJACK:
+        return PUSH, PUSH
+
+    # Resolve one BLACKJACK
+    if outcome1 == BLACKJACK:
+        outcome2 = min(outcome2, LOOSE)
+    if outcome2 == BLACKJACK:
+        outcome1 = min(outcome1, LOOSE)
+
+    # Compare scores
+    if outcome1 == outcome2 == WIN:
+        if score1 < score2:
+            outcome1, outcome2 = LOOSE, WIN
+        if score1 > score2:
+            outcome1, outcome2 = WIN, LOOSE
+        if score1 == score2:
+            outcome1, outcome2 = PUSH, PUSH
+
+    return outcome1, outcome2
+
+
 def _safe_operation(func, values):
     """Apply given function on values or return None if no values.
 
