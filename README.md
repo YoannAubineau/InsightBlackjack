@@ -2,6 +2,9 @@
 
 InsightBlackjack is a text-based blackjack game written in Python.
 
+[![Build Status](https://travis-ci.org/yaubi/InsightBlackjack.svg?branch=master)](https://travis-ci.org/yaubi/InsightBlackjack)
+[![Coverage Status](https://coveralls.io/repos/yaubi/InsightBlackjack/badge.png?branch=master)](https://coveralls.io/r/yaubi/InsightBlackjack?branch=master)
+
 ## Installation
 
 InsightBlackjack is written in Python. It has successfully been tested with
@@ -192,6 +195,21 @@ nosetests
 
 In any case, make sure all tests pass. If a test fails, then it is a bug.  In
 that case, please report the bug as described above.
+
+### Continuous integration
+
+Unit-tests are run automatically on any change made on master branch as well as
+any other branches and pull-requests.
+
+The following badges show the results of the last tests. The first badge tells
+if all tests pass. It should be green and tell 'build: passing'. The second
+badge indicates the amount of code covered by unit-tests. It should be as
+close as possible to 100%.
+
+[![Build Status](https://travis-ci.org/yaubi/InsightBlackjack.svg?branch=master)](https://travis-ci.org/yaubi/InsightBlackjack)
+[![Coverage Status](https://coveralls.io/repos/yaubi/InsightBlackjack/badge.png?branch=master)](https://coveralls.io/r/yaubi/InsightBlackjack?branch=master)
+
+Things seem to be going well so far. :)
 
 ### Source code architecture
 
