@@ -5,6 +5,8 @@ InsightBlackjack is a text-based blackjack game written in Python.
 [![Build Status](https://travis-ci.org/yaubi/InsightBlackjack.svg?branch=master)](https://travis-ci.org/yaubi/InsightBlackjack)
 [![Coverage Status](https://coveralls.io/repos/yaubi/InsightBlackjack/badge.png?branch=master)](https://coveralls.io/r/yaubi/InsightBlackjack?branch=master)
 
+![Screenshot](https://raw.githubusercontent.com/yaubi/InsightBlackjack/master/screenshot.png)
+
 ## Installation
 
 InsightBlackjack is written in Python. It has successfully been tested with
