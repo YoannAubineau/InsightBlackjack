@@ -21,6 +21,7 @@ class BasicRuleset(Ruleset):
     MINIMUM_WAGER = 1
     DEALER_RECEIVES_HOLE_CARD = False
     DEALER_REVEALS_BLACKJACK_HAND = None
+    MAXIMUM_SPLIT_COUNT_ALLOWED = 0
     BLACKJACK_PAYOUT_RATIO = 2/1
 
 
@@ -33,6 +34,7 @@ class EuropeanRuleset(Ruleset):
     MINIMUM_WAGER = 10
     DEALER_RECEIVES_HOLE_CARD = False
     DEALER_REVEALS_BLACKJACK_HAND = None
+    MAXIMUM_SPLIT_COUNT_ALLOWED = 1
     BLACKJACK_PAYOUT_RATIO = 3/2
 
 
@@ -45,6 +47,7 @@ class AmericanRuleset(Ruleset):
     MINIMUM_WAGER = 10
     DEALER_RECEIVES_HOLE_CARD = True
     DEALER_REVEALS_BLACKJACK_HAND = True
+    MAXIMUM_SPLIT_COUNT_ALLOWED = 4
     BLACKJACK_PAYOUT_RATIO = 3/2
 
 
@@ -116,8 +119,9 @@ class Game(object):
                 if chip_count > player.chip_count:
                     print('You do not have enough chips! Please lower your bet.')
                     continue
-                player.hand = blackjack.card.Hand()
-                player.bet(chip_count)
+                hand = blackjack.card.Hand()
+                player.hands.append(hand)
+                player.bet(chip_count, hand)
                 active_players.append(player)
                 break
         if active_players:
@@ -131,14 +135,16 @@ class Game(object):
             table.shoe.shuffle()
         # First round
         for player in table.active_players:
-            card = table.shoe.draw_card(visible=True)
-            player.hand.add_card(card)
+            for hand in player.hands:
+                card = table.shoe.draw_card(visible=True)
+                hand.add_card(card)
         card = table.shoe.draw_card(visible=True)
         table.dealer.hand.add_card(card)
         # Second round
         for player in table.active_players:
-            card = table.shoe.draw_card(visible=True)
-            player.hand.add_card(card)
+            for hand in player.hands:
+                card = table.shoe.draw_card(visible=True)
+                hand.add_card(card)
             blackjack.ui.display_player(player)
         # Second round — Hole card
         if self.ruleset.DEALER_RECEIVES_HOLE_CARD:
@@ -152,23 +158,50 @@ class Game(object):
     def _interact_with_player(self, table, player):
         """Deal more cards to given player as requested."""
         print('Interacting with player "{}"…'.format(player))
-        while True:
-            blackjack.ui.display_player(player)
-            if player.hand.score > blackjack.score.TARGET_SCORE:
-                print('Player\'s hand has gone bust with {} points!'.format(
-                    player.hand.score), color='red')
-                break
-            key = blackjack.ui.ask('[h]it or [s]tand?', choices=['h', 's'], default='h')
-            # Hit
-            if key == 'h':
-                card = table.shoe.draw_card(visible=True)
-                player.hand.add_card(card)
-                print('Player hit and received a "{}".'.format(card))
-                continue
-            # Stand
-            if key == 's':
-                print('Player stands.')
-                break
+        for hand in player.hands:
+            while True:
+                blackjack.ui.display_player(player, only_hand=hand)
+                if hand.score > blackjack.score.TARGET_SCORE:
+                    print('Player\'s hand has gone bust with {} points!'.format(
+                        hand.score), color='red')
+                    break
+                # Ask player his next action
+                player_can_split = (
+                    hand.can_be_splitted and
+                    player.chip_count >= hand.wager and
+                    len(player.hands) < self.ruleset.MAXIMUM_SPLIT_COUNT_ALLOWED + 1
+                )
+                if player_can_split:
+                    key = blackjack.ui.ask('[h]it, [s]tand or s[p]lit?',
+                        choices=['h', 's', 'p'], default='h')
+                else:
+                    key = blackjack.ui.ask('[h]it or [s]tand?',
+                        choices=['h', 's'], default='h')
+                # Hit
+                if key == 'h':
+                    card = table.shoe.draw_card(visible=True)
+                    hand.add_card(card)
+                    print('Player hit and received a "{}".'.format(card))
+                    continue
+                # Stand
+                if key == 's':
+                    print('Player stands.')
+                    break
+                # Split
+                if key == 'p':
+                    # Create new hand with last card from first hand
+                    last_card = hand.pop()
+                    hand2 = blackjack.card.Hand([last_card])
+                    player.hands.append(hand2)
+                    # Bet same amount on second hand
+                    player.bet(hand.wager, hand2)
+                    # Deal new card for each hand
+                    card = table.shoe.draw_card(visible=True)
+                    hand.add_card(card)
+                    hand2.add_card(table.shoe.draw_card(visible=True))
+                    # Announce new player state
+                    print('Player split, bet {} more chips and received a "{}" on first hand.'.format(
+                        hand2.wager, card))
 
     def _interact_with_dealer(self, table, dealer):
         """Deal more cards to given dealer as requested."""
@@ -196,37 +229,38 @@ class Game(object):
         print('Dealer has {} points with {} cards.'.format(
             table.dealer.hand.score, len(table.dealer.hand)), color='white')
         for player in table.active_players:
-            outcome, _ = blackjack.score.compare_hands(player.hand, table.dealer.hand)
-            if outcome == blackjack.score.BUST:
-                chip_count = 0
-                print('Player "{}" busted with {} points.'.format(
-                    player, player.hand.score), color='red')
-            if outcome == blackjack.score.LOOSE:
-                chip_count = 0
-                print('Player "{}" loses with {} points on {} cards.'.format(
-                    player, player.hand.score, len(player.hand)), color='red')
-            if outcome == blackjack.score.PUSH:
-                chip_count = 0
-                print('Player "{}" is on tie with {} points on {} cards and gets his wager back.'.format(
-                    player, player.hand.score, len(player.hand)), color='yellow')
-                chip_count += player.hand.wager
-            if outcome == blackjack.score.WIN:
-                chip_count = player.hand.wager
-                print('Player "{}" wins with {} points on {} cards and earns {} more chips.'.format(
-                    player, player.hand.score, len(player.hand), chip_count), color='green')
-                chip_count += player.hand.wager
-            if outcome == blackjack.score.BLACKJACK:
-                chip_count = int(player.hand.wager * self.ruleset.BLACKJACK_PAYOUT_RATIO)
-                print('Player "{}" does Blackjack and earns {} more chips'.format(
-                    player, chip_count), color='green')
-                chip_count += player.hand.wager
-            player.earn(chip_count)
+            for hand in player.hands:
+                outcome, _ = blackjack.score.compare_hands(hand, table.dealer.hand)
+                if outcome == blackjack.score.BUST:
+                    chip_count = 0
+                    print('Player "{}" busted with {} points.'.format(
+                        player, hand.score), color='red')
+                if outcome == blackjack.score.LOOSE:
+                    chip_count = 0
+                    print('Player "{}" loses with {} points on {} cards.'.format(
+                        player, hand.score, len(hand)), color='red')
+                if outcome == blackjack.score.PUSH:
+                    chip_count = 0
+                    print('Player "{}" is on tie with {} points on {} cards and gets his wager back.'.format(
+                        player, hand.score, len(hand)), color='yellow')
+                    chip_count += hand.wager
+                if outcome == blackjack.score.WIN:
+                    chip_count = hand.wager
+                    print('Player "{}" wins with {} points on {} cards and earns {} more chips.'.format(
+                        player, hand.score, len(hand), chip_count), color='green')
+                    chip_count += hand.wager
+                if outcome == blackjack.score.BLACKJACK:
+                    chip_count = int(hand.wager * self.ruleset.BLACKJACK_PAYOUT_RATIO)
+                    print('Player "{}" does Blackjack and earns {} more chips'.format(
+                        player, chip_count), color='green')
+                    chip_count += hand.wager
+                player.earn(chip_count)
 
     def _cleanup(self, table):
         """Drop all cards on table."""
         print('Cleaning table…')
         for player in table.active_players:
-            player.drop_hand()
+            player.drop_hands()
         table.dealer.drop_hand()
         table.shoe.reload()
 

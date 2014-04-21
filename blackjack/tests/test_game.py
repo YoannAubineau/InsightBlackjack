@@ -20,7 +20,7 @@ class BaseTestGame(unittest.TestCase):
         self.dealer = blackjack.player.Dealer()
         self.dealer.hand = blackjack.card.Hand()
         self.player = blackjack.player.Player('John', 20)
-        self.player.hand = blackjack.card.Hand()
+        self.player.hands.append(blackjack.card.Hand())
         self.table = blackjack.player.Table(self.shoe, self.dealer, [self.player])
         self.ruleset = blackjack.game.AmericanRuleset()
         self.game = blackjack.game.Game(self.ruleset)
@@ -106,7 +106,7 @@ class TestGameCollectWagers(BaseTestGame):
         blackjack.ui.ask.return_value = self.game.ruleset.MINIMUM_WAGER
         active_players = self.game._collect_wagers(self.table)
         self.assertEqual(blackjack.ui.ask.call_count, 1)
-        self.assertIsInstance(self.player.hand, blackjack.card.Hand)
+        self.assertIsInstance(self.player.hands[0], blackjack.card.Hand)
         self.assertIsInstance(self.dealer.hand, blackjack.card.Hand)
         self.assertIn(self.player, active_players)
 
@@ -130,8 +130,8 @@ class TestGameDealInitialCards(BaseTestGame):
         self.game.ruleset.DEALER_REVEALS_BLACKJACK_HAND = None
         self.shoe.__next__.side_effect = self.cards
         self.game._deal_initial_cards(self.table)
-        self.assertListEqual(list(self.player.hand), [self.cards[0], self.cards[2]])
-        for card in self.player.hand:
+        self.assertListEqual(list(self.player.hands[0]), [self.cards[0], self.cards[2]])
+        for card in self.player.hands[0]:
             self.assertTrue(card.visible)
         self.assertListEqual(self.dealer.hand, [self.cards[1]])
         self.assertTrue(self.dealer.hand[0].visible)
@@ -142,8 +142,8 @@ class TestGameDealInitialCards(BaseTestGame):
         self.game.ruleset.DEALER_REVEALS_BLACKJACK_HAND = False
         self.shoe.__next__.side_effect = self.cards
         self.game._deal_initial_cards(self.table)
-        self.assertListEqual(list(self.player.hand), [self.cards[0], self.cards[2]])
-        for card in self.player.hand:
+        self.assertListEqual(list(self.player.hands[0]), [self.cards[0], self.cards[2]])
+        for card in self.player.hands[0]:
             self.assertTrue(card.visible)
         self.assertListEqual(self.dealer.hand, [self.cards[1], self.cards[3]])
         self.assertTrue(self.dealer.hand[0].visible)
@@ -155,8 +155,8 @@ class TestGameDealInitialCards(BaseTestGame):
         self.game.ruleset.DEALER_REVEALS_BLACKJACK_HAND = True
         self.shoe.__next__.side_effect = self.cards
         self.game._deal_initial_cards(self.table)
-        self.assertListEqual(list(self.player.hand), [self.cards[0], self.cards[2]])
-        for card in self.player.hand:
+        self.assertListEqual(list(self.player.hands[0]), [self.cards[0], self.cards[2]])
+        for card in self.player.hands[0]:
             self.assertTrue(card.visible)
         self.assertListEqual(self.dealer.hand, [self.cards[1], self.cards[3]])
         self.assertTrue(self.dealer.hand[0].visible)
@@ -174,29 +174,29 @@ class TestGameInteractWithPlayer(BaseTestGame):
     @patch('blackjack.ui.ask')
     @patch.multiple('blackjack.card.Hand', add_card=DEFAULT, score=DEFAULT)
     def test_player_busted_right_away(self, *args, **kwargs):
-        self.player.hand.score = blackjack.score.TARGET_SCORE + 1
+        self.player.hands[0].score = blackjack.score.TARGET_SCORE + 1
         self.game._interact_with_player(self.table, self.player)
         self.assertFalse(blackjack.ui.ask.called)
-        self.assertFalse(self.player.hand.add_card.called)
+        self.assertFalse(self.player.hands[0].add_card.called)
 
     @patch('blackjack.ui.ask')
     @patch.multiple('blackjack.card.Hand', score=DEFAULT)
     def test_player_stands(self, *args, **kwargs):
-        self.player.hand.score = 2
+        self.player.hands[0].score = 2
         blackjack.ui.ask.return_value = 's'
-        card_count_before = len(self.player.hand)
+        card_count_before = len(self.player.hands[0])
         self.game._interact_with_player(self.table, self.player)
         self.assertTrue(blackjack.ui.ask.called)
-        self.assertEqual(len(self.player.hand), card_count_before)
+        self.assertEqual(len(self.player.hands[0]), card_count_before)
 
     @patch('blackjack.ui.ask')
     @patch.multiple('blackjack.card.Hand', score=DEFAULT)
     def test_player_hits(self, *args, **kwargs):
-        self.player.hand.score = 2
+        self.player.hands[0].score = 2
         blackjack.ui.ask.side_effect = ['h', 's']
-        card_count_before = len(self.player.hand)
+        card_count_before = len(self.player.hands[0])
         self.game._interact_with_player(self.table, self.player)
-        self.assertEqual(len(self.player.hand), card_count_before + 1)
+        self.assertEqual(len(self.player.hands[0]), card_count_before + 1)
 
 
 class TestGameInteractWithDealer(BaseTestGame):
@@ -241,7 +241,7 @@ class TestGamePayGains(BaseTestGame):
 
     def setUp(self):
         super(TestGamePayGains, self).setUp()
-        self.player.hand.wager = 5
+        self.player.hands[0].wager = 5
         self.table.active_players = self.table.players
 
     @patch('blackjack.score.compare_hands')
@@ -263,7 +263,7 @@ class TestGamePayGains(BaseTestGame):
         blackjack.score.compare_hands.return_value = (blackjack.score.PUSH, None)
         chip_count_before = self.player.chip_count
         self.game._pay_gains(self.table)
-        expected_chip_count = chip_count_before + self.player.hand.wager
+        expected_chip_count = chip_count_before + self.player.hands[0].wager
         self.assertEqual(self.player.chip_count, expected_chip_count)
 
     @patch('blackjack.score.compare_hands')
@@ -271,7 +271,7 @@ class TestGamePayGains(BaseTestGame):
         blackjack.score.compare_hands.return_value = (blackjack.score.WIN, None)
         chip_count_before = self.player.chip_count
         self.game._pay_gains(self.table)
-        expected_chip_count = chip_count_before + 2 * self.player.hand.wager
+        expected_chip_count = chip_count_before + 2 * self.player.hands[0].wager
         self.assertEqual(self.player.chip_count, expected_chip_count)
 
     @patch('blackjack.score.compare_hands')
@@ -280,7 +280,7 @@ class TestGamePayGains(BaseTestGame):
         chip_count_before = self.player.chip_count
         self.game._pay_gains(self.table)
         ratio = 1 + self.ruleset.BLACKJACK_PAYOUT_RATIO
-        expected_chip_count = chip_count_before + int(ratio * self.player.hand.wager)
+        expected_chip_count = chip_count_before + int(ratio * self.player.hands[0].wager)
         self.assertEqual(self.player.chip_count, expected_chip_count)
 
 
@@ -295,7 +295,7 @@ class TestGameCleanup(BaseTestGame):
         dealt_card = set(itertools.islice(self.shoe, len(self.shoe) - 3))
         self.assertEqual(len(self.shoe), 3)
         self.game._cleanup(self.table)
-        self.assertEqual(self.player.hand, None)
+        self.assertListEqual(self.player.hands, [])
         self.assertEqual(self.dealer.hand, None)
         self.assertEqual(len(self.shoe), card_count_before)
 

@@ -123,6 +123,11 @@ class Hand(list):
         score = blackjack.score.score_from_hand(self)
         return score
 
+    @property
+    def can_be_splitted(self):
+        can_be_splitted = blackjack.score.hand_can_be_splited(self)
+        return can_be_splitted
+
     def __repr__(self):
         txt = '<Hand with {} cards>'.format(len(self))
         return txt

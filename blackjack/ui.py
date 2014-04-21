@@ -11,18 +11,37 @@ def print(msg, color='grey'):
     builtins.print(msg)
 
 
-def display_player(player):
+ORDINAL_FROM_INDEX = {
+    1: 'first',
+    2: 'second',
+    3: 'third',
+    4: 'fourth',
+    5: 'fifth',
+}
+
+def display_player(player, only_hand=None):
     """Display player's hand and wealth."""
     # Display player with no cards
-    if not player.hand or not len(player.hand):
+    if len(player.hands) == 0:
         lines = ['Player "{}" has {} remaining chips.'.format(
             player.name, player.chip_count)]
-    # Display player with cards
-    else:
+    # Display player with 1 hand
+    if len(player.hands) == 1:
         lines = ['Player "{}" has {} cards and {} remaining chips:'.format(
-            player.name, len(player.hand), player.chip_count)]
-        for card in player.hand:
+            player.name, len(player.hands[0]), player.chip_count)]
+        for card in player.hands[0]:
             lines.append('  Card "{}"'.format(card))
+    # Display player with multiple hands
+    if len(player.hands) > 1:
+        lines = ['Player "{}" has {} hands and {} remaining chips:'.format(
+            player.name, len(player.hands), player.chip_count)]
+        for i, hand in enumerate(player.hands):
+            if only_hand and hand != only_hand:
+                continue
+            lines.append('  {} hand with {} cards:'.format(
+                ORDINAL_FROM_INDEX[i + 1].capitalize(), len(hand)))
+            for card in hand:
+                lines.append('    Card "{}"'.format(card))
     txt = '\n'.join(lines)
     print(txt, color='white')
 

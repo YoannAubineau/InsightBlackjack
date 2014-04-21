@@ -52,6 +52,15 @@ def score_from_hand(hand):
     return best_score
 
 
+def hand_can_be_splited(hand):
+    can_be_splitted = (
+        len(hand) == 2 and
+        values_from_card(hand[0]) == values_from_card(hand[1]) and
+        not any(card.rank == 'Ace' for card in hand)
+    )
+    return can_be_splitted
+
+
 BUST, LOOSE, PUSH, WIN, BLACKJACK = 0, 1, 2, 3, 4
 
 

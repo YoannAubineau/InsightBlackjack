@@ -181,7 +181,7 @@ https://github.com/yaubi/InsightBlackjack/issues
 
 ### Unit-tests
 
-InsightBlackjack is currently covered by exactly 100 unit-tests. All those
+InsightBlackjack is currently covered by exactly 99 unit-tests. All those
 tests can be run at once, in less that a second, with the following command:
 
 ```sh
